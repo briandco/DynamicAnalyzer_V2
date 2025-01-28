@@ -41,33 +41,6 @@ double elapsed_CPU = (seconds_CPU * 1e6) + (nanoseconds_CPU * 1e-3);
 
 printf("CPU Time measured: %.3f microseconds.\n\n", elapsed_CPU);"#;
 
-// pub fn run_instrumentation() -> io::Result<()> {
-//     let input_dir = PathBuf::from("input");
-//     let output_dir = PathBuf::from("output");
-
-//     if !output_dir.exists() {
-//         fs::create_dir_all(&output_dir)?;
-//     }
-
-//     for entry in fs::read_dir(input_dir)? {
-//         let entry = entry?;
-//         let path = entry.path();
-
-//         if path.extension().and_then(|s| s.to_str()) == Some("cpp") {
-//             let file_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
-//             let output_file_name = format!("{}_da.cpp", file_name);
-//             let output_path = output_dir.join(output_file_name);
-
-//             println!("Processing file: {:?}", path);
-
-//             instrument_cpp_file(&path, &output_path)?;
-//         }
-//     }
-
-//     println!("All files processed successfully!");
-//     Ok(())
-// }
-
 /// Instruments a `.cpp` file by adding code at the beginning and end of functions
 pub(crate) fn instrument_cpp_file(input_path: &Path, output_path: &Path) -> io::Result<()> {
     let content = fs::read_to_string(input_path)?;

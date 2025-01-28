@@ -36,47 +36,19 @@ printf("Wall Time measured: %.3f microseconds.\n", elapsed_wall);
 FILETIME kernel_time_end, user_time_end;
 GetProcessTimes(GetCurrentProcess(), &creation_time, &exit_time, &kernel_time_end, &user_time_end);
 
-ULONGLONG start_time = (reinterpret_cast<ULONGLONG>(kernel_time_start.dwLowDateTime) | 
-                        (reinterpret_cast<ULONGLONG>(kernel_time_start.dwHighDateTime) << 32)) +
-                       (reinterpret_cast<ULONGLONG>(user_time_start.dwLowDateTime) |
-                        (reinterpret_cast<ULONGLONG>(user_time_start.dwHighDateTime) << 32));
+ULONGLONG start_time = (static_cast<ULONGLONG>(kernel_time_start.dwLowDateTime) | 
+                        (static_cast<ULONGLONG>(kernel_time_start.dwHighDateTime) << 32)) +
+                       (static_cast<ULONGLONG>(user_time_start.dwLowDateTime) |
+                        (static_cast<ULONGLONG>(user_time_start.dwHighDateTime) << 32));
 
-ULONGLONG end_time = (reinterpret_cast<ULONGLONG>(kernel_time_end.dwLowDateTime) | 
-                      (reinterpret_cast<ULONGLONG>(kernel_time_end.dwHighDateTime) << 32)) +
-                     (reinterpret_cast<ULONGLONG>(user_time_end.dwLowDateTime) |
-                      (reinterpret_cast<ULONGLONG>(user_time_end.dwHighDateTime) << 32));
+ULONGLONG end_time = (static_cast<ULONGLONG>(kernel_time_end.dwLowDateTime) | 
+                      (static_cast<ULONGLONG>(kernel_time_end.dwHighDateTime) << 32)) +
+                     (static_cast<ULONGLONG>(user_time_end.dwLowDateTime) |
+                      (static_cast<ULONGLONG>(user_time_end.dwHighDateTime) << 32));
 
 double elapsed_cpu = (double)(end_time - start_time) / 10.0;
 
 printf("CPU Time measured: %.3f microseconds.\n\n", elapsed_cpu);"#;
-
-// pub fn run_instrumentation() -> io::Result<()>{
-//     let input_dir = PathBuf::from("input");
-//     let output_dir = PathBuf::from("output");
-
-//     if !output_dir.exists(){
-//         fs::create_dir_all(&output_dir)?;
-//     }
-
-//     for entry in fs::read_dir(input_dir)? {
-//         let entry = entry?;
-//         let path = entry.path();
-
-//         if path.extension().and_then(|s| s.to_str()) == Some("cpp") {
-//             let file_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
-//             let output_file_name = format!("{}_da.cpp", file_name);
-//             let output_path = output_dir.join(output_file_name);
-
-//             println!("Processing file: {:?}", path);
-
-//             instrument_cpp_file(&path, &output_path)?;
-//         }
-//     }
-
-//     println!("All files processed successfully!");
-
-//     Ok(())
-// }
 
 pub fn instrument_cpp_file( input_path:&Path, output_path:&Path ) -> io::Result<()>{
     
