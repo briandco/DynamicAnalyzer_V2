@@ -2,6 +2,7 @@ mod linux_da;
 mod windows_da;
 
 use std::env;
+use std::fs;
 use std::io;
 
 fn main() -> io::Result<()>{
@@ -39,53 +40,19 @@ fn run_instrumentation( platform_specific_fn: fn(&std::path::Path, &std::path::P
 
         if path.extension().and_then(|s| s.to_str()) == Some("cpp") {
             let file_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
-            let output_file_name = format!("{}_da.cpp", file_name);
+            let output_file_name = format!("{}.cpp", file_name);
             let output_path = output_dir.join(output_file_name);
 
             println!("Processing file: {:?}", path);
 
             platform_specific_fn(&path, &output_path)?;
+        }else {
+            let output_path = output_dir.join(path.file_name().unwrap());
+            fs::copy(&path, &output_path)?;
+            println!("Copied file: {:?} to {:?}", path, output_path);
         }
     }
 
     println!("All files processed successfully!");
     Ok(())
 }
-
-
-
-
-
-
-
-
-
-
-
-// use std::{fs, io, path::Path};
-
-// #[cfg(target_os = "linux")]
-// mod linux_da;
-
-// #[cfg(target_os = "windows")]
-// mod windows_da;
-
-
-// #[cfg(target_os = "linux")]
-// fn main() {
-//     println!("Running on Linux!");
-
-//     if let Err(e) = linux_da::run_instrumentation() {
-//         eprintln!("Error: {}", e);
-//     }
-// }
-
-// #[cfg(target_os = "windows")]
-// fn main() {
-//     println!("Running on Windows!");
-
-//     if let Err(e) = windows_da::run_instrumentation() {
-//         eprintln!("Error: {}", e);
-//     }
-// }
-

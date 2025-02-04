@@ -2,7 +2,15 @@ use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
 
-const INSTRUMENTATION_BEGIN: &str = r#"struct mallinfo mi_start =  mallinfo();
+const ADDITIONAL_INCLUDES: &str = r#"
+#include <chrono>
+#include <time.h>
+#include <ctime>
+#include <malloc.h>
+"#;
+
+
+const INSTRUMENTATION_BEGIN: &str = r#" 
 int start_var;
 
 ///////////////// Wall Time ////////////////////////
@@ -13,13 +21,15 @@ clock_gettime(CLOCK_REALTIME, &begin_wall);
 ///////////////// CPU Time /////////////////////////
 // Start measuring time
 struct timespec begin_CPU, end_CPU; 
-clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &begin_CPU);"#;
+clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &begin_CPU);
+struct mallinfo mi_start = mallinfo();
 
-const INSTRUMENTATION_END: &str = r#"int end_var;
+"#;
 
-struct mallinfo mi_end = mallinfo();
-cout << "\nStack used = " << ((reinterpret_cast<intptr_t>(&end_var))-(reinterpret_cast<intptr_t>(&start_var)) - 4);
-cout << "\nHeap used = " << (mi_end.uordblks - mi_start.uordblks) << " bytes \n";
+const INSTRUMENTATION_END: &str = r#"struct mallinfo mi_end = mallinfo();
+
+// The field 'uordblks' contains the total allocated space in bytes.
+std::cout << "Total heap allocated " << ((mi_end.uordblks - mi_start.uordblks)) << " bytes" << std::endl;
 
 //////////////// Wall Time ///////////////
 clock_gettime(CLOCK_REALTIME, &end_wall);
@@ -51,11 +61,6 @@ pub(crate) fn instrument_cpp_file(input_path: &Path, output_path: &Path) -> io::
     let mut brace_count = 0;
     let mut includes_inserted = false; // Tracks if additional includes were inserted
     let mut pending_instrumentation_end = false;
-
-    const ADDITIONAL_INCLUDES: &str = r#"#include <malloc.h>
-#include <chrono>
-#include <time.h>
-#include <ctime>"#;
 
     for line in content.lines() {
         let trimmed_line = line.trim();
